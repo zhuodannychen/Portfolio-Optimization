@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import yfinance as yf
 
 from equal_weight import equal_weight
+from equal_weight import minimum_variance
 
 
 TICKERS = ['AAPL',       # Apple
@@ -14,7 +15,7 @@ TICKERS = ['AAPL',       # Apple
           'MCD',        # McDonald's
           'WMT']         # Walmart
 
-TICKERS = ['QQQ', 'TQQQ', 'TMF']
+# TICKERS = ['QQQ', 'TQQQ', 'TMF']
 TOTAL_BALANCE = 10000
 start_date = '2015-01-01'
 end_date = '2017-12-31'
@@ -25,7 +26,7 @@ hist_prices.dropna(axis=0)
 hist_return = np.log(hist_prices / hist_prices.shift())
 hist_return.dropna(axis=0)
 
-# Calculating mean, covariance, and correlation
+# Calculating mean (expected returns), covariance (expected volatility), and correlation
 hist_mean = hist_return.mean(axis=0).to_frame()
 hist_mean.columns = ['mu']
 hist_cov = hist_return.cov()
@@ -34,11 +35,12 @@ print(hist_mean.T)
 print(hist_cov)
 
 
-# calculate portfolio returns and volatility
-def calc_returns_and_std(weights, mean, covariance):
+# calculate portfolio returns, volatility, and sharpe ratio
+def portfolio_performance(weights, mean, covariance):
     portfolio_return = np.dot(weights.T, mean.values) * 250 # annualize data; ~250 trading days in a year
     portfolio_std = np.sqrt(np.dot(weights.T, np.dot(covariance, weights)) * 250)
-    return portfolio_return[0], portfolio_std
+    sharpe_ratio = portfolio_return / portfolio_std
+    return portfolio_return[0], portfolio_std, sharpe_ratio[0]
     
 
 # simulate randomized portfolios
@@ -49,17 +51,30 @@ portfolio_stds = []
 for i in range(n_portfolios):
     weights = np.random.rand(len(TICKERS))
     weights = weights / sum(weights)
-    portfolio_return, portfolio_std = calc_returns_and_std(weights, hist_mean, hist_cov)
+    portfolio_return, portfolio_std, sharpe_ratio = portfolio_performance(weights, hist_mean, hist_cov)
 
     portfolio_returns.append(portfolio_return)
     portfolio_stds.append(portfolio_std)
 
 # Optimized portfolios
-# Equally weighted portfolio
+# Equally Weighted Portfolio
 equally_weighted_weights = np.array(equal_weight(TICKERS))
-equally_weighted_return, equally_weighted_std = calc_returns_and_std(equally_weighted_weights, hist_mean, hist_cov)
-print('Equally weighted portfolio volatility and returns:', equally_weighted_std, equally_weighted_return)
-print('Sharpe Ratio:', equally_weighted_return / equally_weighted_std)
+equally_weighted_return, equally_weighted_std, equally_weighted_sharpe_ratio = portfolio_performance(equally_weighted_weights, hist_mean, hist_cov)
+print('Equally weighted portfolio returns:', equally_weighted_return)
+print('Equally weighted portfolio volatility:', equally_weighted_std)
+print('Equally weighted portfolio Sharpe Ratio:', equally_weighted_sharpe_ratio)
+
+# Global Minimum Variance Portfolio
+print('Global minimum weights')
+gmv_weights = np.array(minimum_variance(hist_return))
+gmv_return, gmv_std, gmv_sharpe_ratio = portfolio_performance(gmv_weights, hist_mean, hist_cov)
+print(gmv_weights)
+print('Returns:', gmv_return)
+print('Volatility:', gmv_std)
+print('Sharpe Ratio:', gmv_sharpe_ratio)
+
+
+"""
 
 # Print out portfolio value over time
 date_range = []
@@ -78,14 +93,15 @@ print('Percent Change:', (FINAL_BALANCE - TOTAL_BALANCE) / TOTAL_BALANCE)
 plt.plot(date_range, equally_weighted_portfolio)
 # plt.show()
 
-
+"""
 
 
 # Display portfolios
 plt.scatter(portfolio_stds, portfolio_returns, marker='o', s=3)
 plt.plot(equally_weighted_std, equally_weighted_return, 'or')
+plt.plot(gmv_std, gmv_return, 'or')
 plt.title('Volatility vs Returns for Randomly Generated Portfolios')
 plt.xlabel('Volatility')
 plt.ylabel('Returns')
-# plt.show()
+plt.show()
 
