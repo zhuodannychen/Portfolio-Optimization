@@ -44,7 +44,7 @@ def portfolio_performance(weights, mean, covariance):
     
 
 # simulate randomized portfolios
-n_portfolios = 1000
+n_portfolios = 5000
 portfolio_returns = []
 portfolio_stds = []
 
@@ -56,22 +56,26 @@ for i in range(n_portfolios):
     portfolio_returns.append(portfolio_return)
     portfolio_stds.append(portfolio_std)
 
-# Optimized portfolios
-# Equally Weighted Portfolio
+#------------ Optimized portfolios ------------------#
+
+#----------- Equally Weighted Portfolio -------------#
 equally_weighted_weights = np.array(equal_weight(TICKERS))
 equally_weighted_return, equally_weighted_std, equally_weighted_sharpe_ratio = portfolio_performance(equally_weighted_weights, hist_mean, hist_cov)
+print(equally_weighted_weights)
 print('Equally weighted portfolio returns:', equally_weighted_return)
 print('Equally weighted portfolio volatility:', equally_weighted_std)
 print('Equally weighted portfolio Sharpe Ratio:', equally_weighted_sharpe_ratio)
 
-# Global Minimum Variance Portfolio
+print()
+
+#----------- Global Minimum Variance Portfolio ------#
 print('Global minimum weights')
 gmv_weights = np.array(minimum_variance(hist_return))
 gmv_return, gmv_std, gmv_sharpe_ratio = portfolio_performance(gmv_weights, hist_mean, hist_cov)
 print(gmv_weights)
-print('Returns:', gmv_return)
-print('Volatility:', gmv_std)
-print('Sharpe Ratio:', gmv_sharpe_ratio)
+print('Global minimum variance returns:', gmv_return)
+print('Global minimum variance volatility:', gmv_std)
+print('Global minimum variance sharpe satio:', gmv_sharpe_ratio)
 
 
 """
