@@ -2,6 +2,8 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import yfinance as yf
+from scipy.optimize import minimize
+
 
 from equal_weight import equal_weight
 from equal_weight import minimum_variance
@@ -45,13 +47,18 @@ print(hist_mean.T)
 print(hist_cov)
 
 
-# calculate portfolio returns, volatility, and sharpe ratio
-def portfolio_performance(weights, mean, covariance):
-    portfolio_return = np.dot(weights.T, mean.values) * 253 # annualize data; ~250 trading days in a year
-    portfolio_std = np.sqrt(np.dot(weights.T, np.dot(covariance, weights)) * 253)
-    sharpe_ratio = portfolio_return / portfolio_std
-    return portfolio_return[0], portfolio_std, sharpe_ratio[0]
+# calculate portfolio returns, standard deviation (volatility), and sharpe ratio
+def portfolio_return(weights, mean):
+    portfolio_return = np.dot(weights.T, mean.values) * 250 # annualize data; ~250 trading days in a year
+    return portfolio_return[0]
+
+def portfolio_std(weights, covariance):
+    portfolio_std = np.sqrt(np.dot(weights.T, np.dot(covariance, weights)) * 250)
+    return portfolio_std
     
+def portfolio_sharpe(returns, std):
+    return returns / std
+
 
 # simulate randomized portfolios
 n_portfolios = 5000
@@ -61,16 +68,21 @@ portfolio_stds = []
 for i in range(n_portfolios):
     weights = np.random.rand(len(TICKERS))
     weights = weights / sum(weights)
-    portfolio_return, portfolio_std, sharpe_ratio = portfolio_performance(weights, hist_mean, hist_cov)
+    port_return = portfolio_return(weights, hist_mean)
+    port_std = portfolio_std(weights, hist_cov)
+    sharpe_ratio = portfolio_sharpe(port_return, port_std)
 
-    portfolio_returns.append(portfolio_return)
-    portfolio_stds.append(portfolio_std)
+    portfolio_returns.append(port_return)
+    portfolio_stds.append(port_std)
 
 #------------ Optimized portfolios ------------------#
 
 #----------- Equally Weighted Portfolio -------------#
 equally_weighted_weights = np.array(equal_weight(TICKERS))
-equally_weighted_return, equally_weighted_std, equally_weighted_sharpe_ratio = portfolio_performance(equally_weighted_weights, hist_mean, hist_cov)
+equally_weighted_return = portfolio_return(equally_weighted_weights, hist_mean)
+equally_weighted_std = portfolio_std(equally_weighted_weights, hist_cov)
+equally_weighted_sharpe_ratio = portfolio_sharpe(equally_weighted_return, equally_weighted_std)
+
 print('---------- Equally Weighted Portfolio ----------')
 print('Weights:', equally_weighted_weights)
 print('Return:', equally_weighted_return)
@@ -81,7 +93,10 @@ print()
 
 #----------- Global Minimum Variance Portfolio ------#
 gmv_weights = np.array(minimum_variance(hist_return))
-gmv_return, gmv_std, gmv_sharpe_ratio = portfolio_performance(gmv_weights, hist_mean, hist_cov)
+gmv_return = portfolio_return(gmv_weights, hist_mean)
+gmv_std = portfolio_std(gmv_weights, hist_cov)
+gmv_sharpe_ratio = portfolio_sharpe(gmv_return, gmv_std)
+
 print('---------- Global Minimum Variance ----------')
 print('Weights:', gmv_weights)
 print('Return:', gmv_return)
@@ -91,12 +106,32 @@ print('Sharpe Ratio:', gmv_sharpe_ratio)
 print()
 #----------- Max Sharpe Portfolio ------#
 max_sharpe_weights = np.array(max_sharpe(hist_return))
-max_sharpe_return, max_sharpe_std, max_sharpe_sharpe_ratio = portfolio_performance(max_sharpe_weights, hist_mean, hist_cov)
+max_sharpe_return = portfolio_return(max_sharpe_weights, hist_mean)
+max_sharpe_std = portfolio_std(max_sharpe_weights, hist_cov)
+max_sharpe_sharpe_ratio = portfolio_sharpe(max_sharpe_return, max_sharpe_std)
+
 print('---------- Max Sharpe Ratio ----------')
 print('Weights:', max_sharpe_weights)
 print('Return:', max_sharpe_return)
 print('Volatility:', max_sharpe_std)
 print('Sharpe Ratio:', max_sharpe_sharpe_ratio)
+
+#----------- Efficient Frontier ------#
+target_returns = np.linspace(0.05, 0.23, 100)
+efficient_frontier_risk = []
+for ret in target_returns:
+    optimal = minimize(
+                fun=portfolio_std,
+                args=hist_cov,
+                x0=equally_weighted_weights,
+                bounds=[(0, 1) for x in range(len(TICKERS))],
+                constraints=(
+                    {'type': 'eq', 'fun': lambda x: portfolio_return(x, hist_mean) - ret},
+                    {'type': 'eq', 'fun': lambda weights: np.sum(weights) - 1}
+                ),
+                method='SLSQP'
+            )
+    efficient_frontier_risk.append(optimal['fun'])
 
 
 # Print out portfolio value over time
@@ -144,13 +179,14 @@ plt.show()
 
 
 # Display portfolios
-# plt.scatter(portfolio_stds, portfolio_returns, marker='o', s=3)
-# plt.plot(equally_weighted_std, equally_weighted_return, 'or')
-# plt.plot(gmv_std, gmv_return, 'or')
-# plt.plot(max_sharpe_std, max_sharpe_return, 'or')
-# plt.title('Volatility vs Returns for Randomly Generated Portfolios')
-# plt.xlabel('Volatility')
-# plt.ylabel('Returns')
-# plt.show()
+plt.scatter(portfolio_stds, portfolio_returns, marker='o', s=3)
+plt.plot(efficient_frontier_risk, target_returns, 'og', markersize=3)
+plt.plot(equally_weighted_std, equally_weighted_return, 'or')
+plt.plot(gmv_std, gmv_return, 'or')
+plt.plot(max_sharpe_std, max_sharpe_return, 'or')
+plt.title('Volatility vs Returns for Randomly Generated Portfolios')
+plt.xlabel('Volatility')
+plt.ylabel('Returns')
+plt.show()
 
 

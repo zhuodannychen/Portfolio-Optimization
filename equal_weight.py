@@ -52,12 +52,11 @@ def max_sharpe(ret):
 
     optimal = minimize(fun=sharpe_func,
                        x0=init,
-                       # bounds=bounds_lim,
+                       bounds=bounds_lim,
                        constraints=constraint,
                        method='SLSQP'
                        )
 
-    print(sum(list(optimal['x'])))
     return list(optimal['x'])
 
 
