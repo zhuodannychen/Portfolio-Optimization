@@ -5,29 +5,18 @@ import yfinance as yf
 from scipy.optimize import minimize
 
 
-from equal_weight import equal_weight
-from equal_weight import minimum_variance
-from equal_weight import max_sharpe
+from strategies import equal_weight
+from strategies import minimum_variance
+from strategies import max_sharpe
 
 
-TICKERS = ['AAPL',       # Apple
-          'KO',         # Coca-Cola
-          'DIS',        # Disney
-          'XOM',        # Exxon Mobil
-          'JPM',        # JPMorgan Chase
-          'MCD',        # McDonald's
-          'WMT']         # Walmart
-
-# TICKERS = ['QQQ', 'TQQQ', 'TMF']
-
-# TICKERS = [
-  # "XOM", "SHW", "JPM", "AEP", "UNH", "AMZN", 
-  # "KO", "BA", "AMT", "DD", "TSN", "SLG"
-# ]
+TICKERS = ['QQQ', 'TQQQ', 'TMF']
+# Technology, Consumers, 
+TICKERS = ['VGT', 'VDC', 'VIS', 'VAW', 'VFH', 'VDE', 'VHT']
 
 TOTAL_BALANCE = 10000
 start_date = '2015-01-01'
-end_date = '2017-12-31'
+end_date = '2018-12-31'
 # start_date = '2011-09-13'
 # end_date = '2022-01-09'
 
@@ -173,6 +162,9 @@ for price in spy_prices:
     spy_portfolio.append(spy_port_val)
 # print(spy_portfolio[:10], spy_portfolio[-6:])
 plt.plot(date_range, spy_portfolio, label='SPY')
+plt.title('Portfolio Value')
+plt.xlabel('Date')
+plt.ylabel('Value in dollars')
 plt.legend()
 plt.show()
 
@@ -182,11 +174,11 @@ plt.show()
 plt.scatter(portfolio_stds, portfolio_returns, marker='o', s=3)
 plt.plot(efficient_frontier_risk, target_returns, 'og', markersize=3)
 plt.plot(equally_weighted_std, equally_weighted_return, 'or')
-plt.plot(gmv_std, gmv_return, 'or')
-plt.plot(max_sharpe_std, max_sharpe_return, 'or')
+plt.plot(gmv_std, gmv_return, 'oc')
+plt.plot(max_sharpe_std, max_sharpe_return, 'om')
 plt.title('Volatility vs Returns for Randomly Generated Portfolios')
-plt.xlabel('Volatility')
-plt.ylabel('Returns')
+plt.xlabel('Expected Volatility')
+plt.ylabel('Expected Returns')
 plt.show()
 
 
