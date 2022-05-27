@@ -8,7 +8,7 @@ def equal_weight(assets):
     return optimal
 
 
-def minimum_variance(ret):
+def minimum_variance(ret, bound):
     def find_port_variance(weights):
         # this is actually std
         cov = ret.cov()
@@ -19,7 +19,7 @@ def minimum_variance(ret):
         return np.sum(weights) - 1
 
 
-    bounds_lim = [(0, 1) for x in range(len(ret.columns))] # change to (-1, 1) if you want to short
+    bounds_lim = [bound for x in range(len(ret.columns))] # change to (-1, 1) if you want to short
     init = [1/len(ret.columns) for i in range(len(ret.columns))]
     constraint = {'type': 'eq', 'fun': weight_cons}
 
@@ -33,7 +33,7 @@ def minimum_variance(ret):
     return list(optimal['x'])
 
 
-def max_sharpe(ret):
+def max_sharpe(ret, bound):
     def sharpe_func(weights):
         hist_mean = ret.mean(axis=0).to_frame()
         hist_cov = ret.cov()
@@ -46,7 +46,7 @@ def max_sharpe(ret):
         return np.sum(weights) - 1
 
 
-    bounds_lim = [(0, 1) for x in range(len(ret.columns))] # change to (-1, 1) if you want to short
+    bounds_lim = [bound for x in range(len(ret.columns))] # change to (-1, 1) if you want to short
     init = [1/len(ret.columns) for i in range(len(ret.columns))]
     constraint = {'type': 'eq', 'fun': weight_cons}
 
@@ -58,6 +58,4 @@ def max_sharpe(ret):
                        )
 
     return list(optimal['x'])
-
-
 

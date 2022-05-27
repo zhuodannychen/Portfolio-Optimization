@@ -10,15 +10,13 @@ from strategies import minimum_variance
 from strategies import max_sharpe
 
 
-TICKERS = ['QQQ', 'TQQQ', 'TMF']
-# Technology, Consumers, 
+# TICKERS = ['QQQ', 'TQQQ', 'TMF']
+# Technology, Consumers, Industrial, Materials, Financials, Energy, Healthcare
 TICKERS = ['VGT', 'VDC', 'VIS', 'VAW', 'VFH', 'VDE', 'VHT']
-
 TOTAL_BALANCE = 10000
 start_date = '2015-01-01'
-end_date = '2018-12-31'
-# start_date = '2011-09-13'
-# end_date = '2022-01-09'
+end_date = '2022-05-27'
+bound = (0, 1) # bounds, change to (-1, 1) if shorting is allowed
 
 
 # Retrieve historical prices and calculate returns
@@ -50,7 +48,7 @@ def portfolio_sharpe(returns, std):
 
 
 # simulate randomized portfolios
-n_portfolios = 5000
+n_portfolios = 2000
 portfolio_returns = []
 portfolio_stds = []
 
@@ -81,7 +79,7 @@ print('Sharpe Ratio:', equally_weighted_sharpe_ratio)
 print()
 
 #----------- Global Minimum Variance Portfolio ------#
-gmv_weights = np.array(minimum_variance(hist_return))
+gmv_weights = np.array(minimum_variance(hist_return, bound))
 gmv_return = portfolio_return(gmv_weights, hist_mean)
 gmv_std = portfolio_std(gmv_weights, hist_cov)
 gmv_sharpe_ratio = portfolio_sharpe(gmv_return, gmv_std)
@@ -94,7 +92,7 @@ print('Sharpe Ratio:', gmv_sharpe_ratio)
 
 print()
 #----------- Max Sharpe Portfolio ------#
-max_sharpe_weights = np.array(max_sharpe(hist_return))
+max_sharpe_weights = np.array(max_sharpe(hist_return, bound))
 max_sharpe_return = portfolio_return(max_sharpe_weights, hist_mean)
 max_sharpe_std = portfolio_std(max_sharpe_weights, hist_cov)
 max_sharpe_sharpe_ratio = portfolio_sharpe(max_sharpe_return, max_sharpe_std)
@@ -106,14 +104,14 @@ print('Volatility:', max_sharpe_std)
 print('Sharpe Ratio:', max_sharpe_sharpe_ratio)
 
 #----------- Efficient Frontier ------#
-target_returns = np.linspace(0.05, 0.23, 100)
+target_returns = np.linspace(0.06, 0.17, 100)
 efficient_frontier_risk = []
 for ret in target_returns:
     optimal = minimize(
                 fun=portfolio_std,
                 args=hist_cov,
                 x0=equally_weighted_weights,
-                bounds=[(0, 1) for x in range(len(TICKERS))],
+                bounds=[bound for x in range(len(TICKERS))],
                 constraints=(
                     {'type': 'eq', 'fun': lambda x: portfolio_return(x, hist_mean) - ret},
                     {'type': 'eq', 'fun': lambda weights: np.sum(weights) - 1}
@@ -143,10 +141,7 @@ for index, day in hist_prices.iterrows():
     equally_weighted_portfolio.append(equal_weighted_port_val)
     gmv_portfolio.append(gmv_port_val)
     max_sharpe_portfolio.append(max_sharpe_port_val)
-    # FINAL_BALANCE = port_val
 
-# print(TOTAL_BALANCE, FINAL_BALANCE)
-# print('Percent Change:', (FINAL_BALANCE - TOTAL_BALANCE) / TOTAL_BALANCE)
 
 plt.plot(date_range, equally_weighted_portfolio, label='equally weighted portfolio')
 plt.plot(date_range, gmv_portfolio, label='global min variance portfolio')
@@ -171,14 +166,15 @@ plt.show()
 
 
 # Display portfolios
-plt.scatter(portfolio_stds, portfolio_returns, marker='o', s=3)
-plt.plot(efficient_frontier_risk, target_returns, 'og', markersize=3)
-plt.plot(equally_weighted_std, equally_weighted_return, 'or')
-plt.plot(gmv_std, gmv_return, 'oc')
-plt.plot(max_sharpe_std, max_sharpe_return, 'om')
-plt.title('Volatility vs Returns for Randomly Generated Portfolios')
+plt.scatter(portfolio_stds, portfolio_returns, marker='o', s=3, label='Random')
+plt.plot(efficient_frontier_risk, target_returns, 'og', markersize=3, label='Efficient Frontier')
+plt.plot(equally_weighted_std, equally_weighted_return, 'or', label='Equally Weighted')
+plt.plot(gmv_std, gmv_return, 'oc', label='Global Minimum Variance')
+plt.plot(max_sharpe_std, max_sharpe_return, 'om', label='Max Sharpe')
+plt.title('Volatility vs Returns for Different Portfolios')
 plt.xlabel('Expected Volatility')
 plt.ylabel('Expected Returns')
+plt.legend()
 plt.show()
 
 
