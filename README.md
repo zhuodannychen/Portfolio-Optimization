@@ -1,5 +1,5 @@
 # Portfolio Optimization and Asset Allocation
-This Github repository demonstrates the basics of Modern Portfolio Theorem, including the Global Minimum Variance Portfolio, Max Sharpe Portfolio, and Efficient Frontier, all implemented in Python.
+This Github repository demonstrates the basic practices of the Modern Portfolio Theorem, including the Global Minimum Variance Portfolio, Max Sharpe Portfolio, and Efficient Frontier, all implemented in Python.
 ## Quick Start
 ```
 git clone https://github.com/zhuodannychen/Portfolio-Optimization
@@ -17,7 +17,7 @@ bound = (0, 1) # Change to (-1, 1) if shorting is allowed
 ```
 ## Introduction
 Assuming you have $100 and there are _N_ assets, how much money should you put into each asset to generate maximum profit? 
-The Modern Portfolio Theorem refers to a tradeoff between risk and return. How can we allocate capital to maximize the returns given a certain level of risk? Similarily, how can we minimize risk given a certain level of return? There is no unique solution, but rather, a set of solutions that form what is called the efficient frontier.
+The Modern Portfolio Theorem refers to a tradeoff between risk and return. How can we allocate capital to maximize the returns given a certain level of risk? Similarly, how can we minimize risk given a certain level of return? There is no unique solution, but rather, a set of solutions that form what is called the efficient frontier.
 ## Monte Carlo Simulation
 In our simulation, we use the following sectors: Technology, Consumers, Industrial, Materials, Financials, Energy, and Healthcare.
 ```python
@@ -29,8 +29,6 @@ Then, we randomize the weights of each asset to generate random portfolios.
 </p>
 
 As we can see, some portfolios performed better than other ones, meaning there has to be an optimized portfolio.
-## Efficient Frontier
-The efficient frontier is the set of portfolios that maximize returns given a level of risk.
 ## Equally Weighted Portfolio
 The equally weighted portfolio allocates equal amounts of capital to each asset.
 ```python
@@ -66,7 +64,7 @@ def minimum_variance(ret):
     return list(optimal['x'])
 ```
 ## Maximum Sharpe
-[Sharpe Ratio]("https://economictimes.indiatimes.com/definition/sharpe-ratio") is the measure of risk-adjusted return of a portfolio. A portfolio with a higher Sharpe Ratio is considered superior to its peers. However, expected returns and risk should be known with certainty.
+[Sharpe Ratio]("https://economictimes.indiatimes.com/definition/sharpe-ratio") is the measure of the risk-adjusted return of a portfolio. A portfolio with a higher Sharpe Ratio is considered superior to its peers. However, expected returns and risks should be known with certainty.
 
 The Maximum Sharpe Portfolio can be constructed using ```scipy.optimize.minimize```, except we multiply -1 to the function to maximize the effect.
 ```python
@@ -97,8 +95,17 @@ def max_sharpe(ret):
     return list(optimal['x'])
 ```
 ## Portfolio Performance
-We start with $10000 of total balance in our portfolio.
+We start with a total of $10000 in our portfolio.
 <p align="center">
   <img alt="Portfolio Values" src="assets/portfolio_values.png" width="680" height="420" />
 </p>
+Between 2015-01-01 and 2022-05-27, SPY performed the best while the global minimum variance portfolio performed the worst.
+The Max Sharpe Portfolio had a lot more volatility, making it high risk and high reward.
+## Conclusion
+There are a couple of shortcomings with this project. First, we are calculating the portfolio performance
+based on past data we used to generate the mean and variance, so this is slightly biased.
+Second, portfolios should be rebalanced daily, weekly, monthly, quarterly, or yearly depending on the style. In our simulation, we held on to the same weight allocation for ~7 years.
+For the next steps, I will tackle these challenges.
+
+**This project is for research purposes and not investment advice.**
 
