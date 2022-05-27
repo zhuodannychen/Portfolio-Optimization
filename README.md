@@ -101,6 +101,7 @@ We start with a total of $10000 in our portfolio.
 </p>
 Between 2015-01-01 and 2022-05-27, SPY performed the best while the global minimum variance portfolio performed the worst.
 The Max Sharpe Portfolio had a lot more volatility, making it high risk and high reward.
+
 ## Conclusion
 There are a couple of shortcomings with this project. First, we are calculating the portfolio performance
 based on past data we used to generate the mean and variance, so this is slightly biased.
